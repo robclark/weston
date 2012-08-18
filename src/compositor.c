@@ -3631,5 +3631,7 @@ int main(int argc, char *argv[])
 
 	weston_log_file_close();
 
+	sleep(1);
+
 	return ret;
 }
