@@ -43,6 +43,10 @@
 #include "evdev.h"
 #include "launcher-util.h"
 
+#include <sys/time.h>
+#include <time.h>
+
+
 static int option_current_mode = 0;
 static char *output_name;
 static char *output_mode;
@@ -141,6 +145,8 @@ struct drm_output {
 	EGLSurface egl_surface;
 	struct drm_fb *current, *next;
 	struct backlight *backlight;
+
+	struct timeval flip_time, flip_complete_time;
 };
 
 /*
@@ -383,6 +389,8 @@ drm_output_repaint(struct weston_output *output_base,
 		}
 	}
 
+	gettimeofday(&output->flip_time, NULL);
+
 	if (drmModePageFlip(compositor->drm.fd, output->crtc_id,
 			    output->next->fb_id,
 			    DRM_MODE_PAGE_FLIP_EVENT, output) < 0) {
@@ -481,6 +489,8 @@ page_flip_handler(int fd, unsigned int frame,
 {
 	struct drm_output *output = (struct drm_output *) data;
 	uint32_t msecs;
+	struct timeval flip_time = output->flip_time;
+	gettimeofday(&output->flip_complete_time, NULL);
 
 	output->page_flip_pending = 0;
 
@@ -499,6 +509,12 @@ page_flip_handler(int fd, unsigned int frame,
 		msecs = sec * 1000 + usec / 1000;
 		weston_output_finish_frame(&output->base, msecs);
 	}
+
+	weston_log("flip: %ld, render: %ld\n",
+			(((int32_t)output->flip_complete_time.tv_sec - (int32_t)flip_time.tv_sec) * 1000) +
+			(((int32_t)output->flip_complete_time.tv_usec - (int32_t)flip_time.tv_usec) / 1000),
+			(((int32_t)output->flip_time.tv_sec - (int32_t)flip_time.tv_sec) * 1000) +
+			(((int32_t)output->flip_time.tv_usec - (int32_t)flip_time.tv_usec) / 1000));
 }
 
 static int
@@ -600,6 +616,7 @@ drm_output_prepare_overlay_surface(struct weston_output *output_base,
 	wl_fixed_t sx1, sy1, sx2, sy2;
 	int32_t width, height;
 
+c->sprites_are_broken = 1;
 	if (c->sprites_are_broken)
 		return NULL;
 
@@ -765,7 +782,8 @@ drm_output_set_cursor(struct drm_output *output)
 
 	output->cursor_surface = NULL;
 	if (es == NULL) {
-		drmModeSetCursor(c->drm.fd, output->crtc_id, 0, 0, 0);
+		if (!c->cursors_are_broken)
+			drmModeSetCursor(c->drm.fd, output->crtc_id, 0, 0, 0);
 		return;
 	}
 
