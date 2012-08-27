@@ -3196,10 +3196,13 @@ static const char vertex_shader[] =
 
 /* Declare common fragment shader uniforms */
 #define FRAGMENT_CONVERT_YUV						\
+	"  y *= alpha;\n"						\
+	"  u *= alpha;\n"						\
+	"  v *= alpha;\n"						\
 	"  gl_FragColor.r = y + 1.59602678 * v;\n"			\
 	"  gl_FragColor.g = y - 0.39176229 * u - 0.81296764 * v;\n"	\
 	"  gl_FragColor.b = y + 2.01723214 * u;\n"			\
-	"  gl_FragColor.a = 1.0;\n"
+	"  gl_FragColor.a = alpha;\n"
 
 static const char texture_fragment_shader_rgba[] =
 	"precision mediump float;\n"
@@ -3208,7 +3211,7 @@ static const char texture_fragment_shader_rgba[] =
 	"uniform float alpha;\n"
 	"void main()\n"
 	"{\n"
-	"   gl_FragColor = texture2D(tex, v_texcoord)\n;"
+	"   gl_FragColor = alpha * texture2D(tex, v_texcoord)\n;"
 	"}\n";
 
 static const char texture_fragment_shader_egl_external[] =
@@ -3219,7 +3222,7 @@ static const char texture_fragment_shader_egl_external[] =
 	"uniform float alpha;\n"
 	"void main()\n"
 	"{\n"
-	"   gl_FragColor = texture2D(tex, v_texcoord)\n;"
+	"   gl_FragColor = alpha * texture2D(tex, v_texcoord)\n;"
 	"}\n";
 
 static const char texture_fragment_shader_y_uv[] =
