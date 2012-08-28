@@ -1269,9 +1269,17 @@ repaint_region(struct weston_surface *es, pixman_region32_t *region,
 	struct weston_compositor *ec = es->compositor;
 	GLfloat *v;
 	unsigned int *vtxcnt;
-	int i, first, nrects;
+	int i, first, nfans;
 
-	nrects = texture_region(es, region, surf_region);
+	/* The final region to be painted is the intersection of
+	 * 'region' and 'surf_region'. However, 'region' is in the global
+	 * coordinates, and 'surf_region' is in the surface-local
+	 * corodinates. texture_region() will iterate over all pairs of
+	 * rectangles from both regions, compute the intersection
+	 * polygon for each pair, and store it as a triangle fan if
+	 * it has a non-zero area.
+	 */
+	nfans = texture_region(es, region, surf_region);
 
 	v = ec->vertices.data;
 	vtxcnt = ec->vtxcnt.data;
@@ -1284,7 +1292,7 @@ repaint_region(struct weston_surface *es, pixman_region32_t *region,
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof *v, &v[2]);
 	glEnableVertexAttribArray(1);
 
-	for (i = 0, first = 0; i < nrects; i++) {
+	for (i = 0, first = 0; i < nfans; i++) {
 		glDrawArrays(GL_TRIANGLE_FAN, first, vtxcnt[i]);
 		first += vtxcnt[i];
 	}
