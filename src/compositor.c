@@ -1263,6 +1263,38 @@ texture_region(struct weston_surface *es, pixman_region32_t *region,
 }
 
 static void
+triangle_fan_debug(struct weston_surface *surface, int first, int count)
+{
+	struct weston_compositor *compositor = surface->compositor;
+	int i;
+	GLushort *buffer;
+	GLushort *index;
+	int nelems;
+	static const GLfloat color[4] = { 0.0, 1.0, 0.0, 1.0 };
+
+	nelems = (count - 1 + count - 2) * 2;
+
+	buffer = malloc(sizeof(GLushort) * nelems);
+	index = buffer;
+
+	for (i = 1; i < count; i++) {
+		*index++ = first;
+		*index++ = first + i;
+	}
+
+	for (i = 2; i < count; i++) {
+		*index++ = first + i - 1;
+		*index++ = first + i;
+	}
+
+	glUseProgram(compositor->solid_shader.program);
+	glUniform4fv(compositor->solid_shader.color_uniform, 1, color);
+	glDrawElements(GL_LINES, nelems, GL_UNSIGNED_SHORT, buffer);
+	glUseProgram(surface->shader->program);
+	free(buffer);
+}
+
+static void
 repaint_region(struct weston_surface *es, pixman_region32_t *region,
 		pixman_region32_t *surf_region)
 {
@@ -1294,6 +1326,7 @@ repaint_region(struct weston_surface *es, pixman_region32_t *region,
 
 	for (i = 0, first = 0; i < nfans; i++) {
 		glDrawArrays(GL_TRIANGLE_FAN, first, vtxcnt[i]);
+		triangle_fan_debug(es, first, vtxcnt[i]);
 		first += vtxcnt[i];
 	}
 
