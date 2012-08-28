@@ -966,8 +966,8 @@ calculate_edges(struct weston_surface *es, pixman_box32_t *rect,
 		y2 = y[(i+1) % 4];
 
 		if (x1 == x2) {
-			/* horiz line, infinite slope, only potentially intersects
-			 * clip rect vertical edges:
+			/* vertical line, infinite slope, only potentially
+			 * intersects clip rect horizontal edges:
 			 */
 			if ((y1 <= cy1) && (cy1 <= y2))
 				append_vertex(x1, cy1);
@@ -984,8 +984,8 @@ calculate_edges(struct weston_surface *es, pixman_box32_t *rect,
 			}
 
 		} else if (y1 == y2) {
-			/* vert line, zero slope, only potentially intersects
-			 * clip rect horizontal edges:
+			/* horiz line, zero slope, only potentially intersects
+			 * clip rect vertical edges:
 			 */
 			if ((x1 <= cx1) && (cx1 <= x2))
 				append_vertex(cx1, y1);
