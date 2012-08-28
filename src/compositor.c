@@ -966,38 +966,11 @@ calculate_edges(struct weston_surface *es, pixman_box32_t *rect,
 		y2 = y[(i+1) % 4];
 
 		if (x1 == x2) {
-			/* vertical line, infinite slope, only potentially
-			 * intersects clip rect horizontal edges:
-			 */
-			if ((y1 <= cy1) && (cy1 <= y2))
-				append_vertex(x1, cy1);
-			if ((y1 <= cy2) && (cy2 <= y2))
-				append_vertex(x1, cy2);
-
-			if (n == last_n) {
-				// XXX if we know the transformed surface intersects
-				// the clip rect, we can just clip the edge..
-				weston_log("TODO inner clip rect vertex, x\n");
-				// XXX maybe just clip and emit.. we should end up
-				// with, after duplicate vertices removed, few enough
-				// vertices that we get discarded..
-			}
-
+			append_vertex(clip(x1, cx1, cx2), clip(y1, cy1, cy2));
+			append_vertex(clip(x2, cx1, cx2), clip(y2, cy1, cy2));
 		} else if (y1 == y2) {
-			/* horiz line, zero slope, only potentially intersects
-			 * clip rect vertical edges:
-			 */
-			if ((x1 <= cx1) && (cx1 <= x2))
-				append_vertex(cx1, y1);
-			if ((x1 <= cx2) && (cx2 <= x2))
-				append_vertex(cx2, y1);
-
-			if (n == last_n) {
-				// XXX if we know the transformed surface intersects
-				// the clip rect, we can just clip the edge..
-				weston_log("TODO inner clip rect vertex, y\n");
-			}
-
+			append_vertex(clip(x1, cx1, cx2), clip(y1, cy1, cy2));
+			append_vertex(clip(x2, cx1, cx2), clip(y2, cy1, cy2));
 		} else {
 			GLfloat m, c, p;
 			GLfloat tx[2], ty[2];
