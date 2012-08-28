@@ -925,7 +925,7 @@ calculate_edges(struct weston_surface *es, pixman_box32_t *rect,
 	 * there will be only four edges.  We just need to clip the surface
 	 * vertices to the clip rect bounds:
 	 */
-	if (!es->transform.enabled) {
+	if (0 && !es->transform.enabled) {
 		for (i = 0; i < 4; i++) {
 			ex[n] = clip(x[i], cx1, cx2);
 			ey[n] = clip(y[i], cy1, cy2);
