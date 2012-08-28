@@ -1101,6 +1101,8 @@ edge_check_done:
 			if (n == last_n) {
 				GLfloat best_x=0, best_y=0;
 				uint32_t d, best_d = (unsigned int)-1; /* distance squared */
+				uint32_t max_d = dist_squared(x2, y2,
+						x[(i+2) % 4], y[(i+2) % 4]);
 
 				/* if there are no vertices on this line, it could be that
 				 * there is a vertex of the clip rect that is enclosed by
@@ -1129,6 +1131,13 @@ edge_check_done:
 						return 0;
 
 					*d = dist_squared(cx, cy, x, (m * x) + c);
+
+					/* if intersection distance is further away than
+					 * opposite edge of surface region, it is invalid:
+					 */
+					if (*d > max_d)
+						return 0;
+
 					return 1;
 				}
 
@@ -1156,8 +1165,8 @@ edge_check_done:
 					best_d = d;
 				}
 
-if (best_d != (unsigned int)-1)  // XXX can this happen?
-				append_vertex(best_x, best_y);
+				if (best_d != (unsigned int)-1)  // XXX can this happen?
+					append_vertex(best_x, best_y);
 			}
 		}
 
