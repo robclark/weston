@@ -1299,7 +1299,8 @@ repaint_region(struct weston_surface *es, pixman_region32_t *region,
 
 	for (i = 0, first = 0; i < nfans; i++) {
 		glDrawArrays(GL_TRIANGLE_FAN, first, vtxcnt[i]);
-		triangle_fan_debug(es, first, vtxcnt[i]);
+		if (ec->fan_debug)
+			triangle_fan_debug(es, first, vtxcnt[i]);
 		first += vtxcnt[i];
 	}
 

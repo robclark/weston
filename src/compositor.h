@@ -320,6 +320,7 @@ struct weston_compositor {
 	struct wl_array vertices;
 	struct wl_array vtxcnt;
 	struct weston_plane primary_plane;
+	int fan_debug;
 
 	uint32_t focus;
 
