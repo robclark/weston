@@ -55,6 +55,9 @@
 #include "../shared/os-compatibility.h"
 #include "git-version.h"
 
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
+
+
 static struct wl_list child_process_list;
 static struct weston_compositor *segv_compositor;
 
@@ -1243,7 +1246,13 @@ triangle_fan_debug(struct weston_surface *surface, int first, int count)
 	GLushort *buffer;
 	GLushort *index;
 	int nelems;
-	static const GLfloat color[4] = { 0.0, 1.0, 0.0, 1.0 };
+	static int color_idx = 0;
+	static const GLfloat color[][4] = {
+			{ 1.0, 0.0, 0.0, 1.0 },
+			{ 0.0, 1.0, 0.0, 1.0 },
+			{ 0.0, 0.0, 1.0, 1.0 },
+			{ 1.0, 1.0, 1.0, 1.0 },
+	};
 
 	nelems = (count - 1 + count - 2) * 2;
 
@@ -1261,7 +1270,8 @@ triangle_fan_debug(struct weston_surface *surface, int first, int count)
 	}
 
 	glUseProgram(compositor->solid_shader.program);
-	glUniform4fv(compositor->solid_shader.color_uniform, 1, color);
+	glUniform4fv(compositor->solid_shader.color_uniform, 1,
+			color[color_idx++ % ARRAY_SIZE(color)]);
 	glDrawElements(GL_LINES, nelems, GL_UNSIGNED_SHORT, buffer);
 	glUseProgram(surface->shader->program);
 	free(buffer);
