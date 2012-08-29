@@ -1604,7 +1604,21 @@ weston_output_repaint(struct weston_output *output, uint32_t msecs)
 	if (output->dirty)
 		weston_output_update_matrix(output);
 
-	output->repaint(output, &output_damage);
+	/* if debugging, redraw everything outside the damage to clean up
+	 * debug lines from the previous draw on this buffer:
+	 */
+	if (ec->fan_debug) {
+		pixman_region32_t undamaged;
+		pixman_region32_init(&undamaged);
+		pixman_region32_subtract(&undamaged, &output->region,
+				&output_damage);
+		ec->fan_debug = 0;
+		output->repaint(output, &undamaged, 0);
+		ec->fan_debug = 1;
+		pixman_region32_fini(&undamaged);
+	}
+
+	output->repaint(output, &output_damage, 1);
 
 	pixman_region32_fini(&output_damage);
 
